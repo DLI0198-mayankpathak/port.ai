@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=General+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+	--font-sans: 'Space Grotesk', 'General Sans', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+	--font-alt: 'General Sans', 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+	--radius-xl: 2.75rem;
+	--radius-lg: 1.5rem;
+	--radius-md: 1rem;
+	--radius-sm: 0.65rem;
+	--shadow-soft: 0 25px 80px rgba(5, 6, 10, 0.35);
+	--shadow-card: 0 35px 70px rgba(5, 6, 10, 0.45);
+	--grad-plasma: linear-gradient(135deg, #6a5bff 0%, #db3eff 50%, #ff8a5c 100%);
+	--grad-horizon: linear-gradient(120deg, #61f4aa 0%, #5fb9ff 60%, #bb7bff 100%);
+	--grad-sunrise: linear-gradient(120deg, #ffcf71 0%, #f55555 50%, #a700ff 100%);
+}
+
+:root,
+[data-theme='dark'] {
+	color-scheme: dark;
+	--surface-base: #05060a;
+	--surface-page: #0c0d14;
+	--surface-muted: #131421;
+	--surface-glass: rgba(15, 17, 31, 0.65);
+	--stroke-subtle: rgba(255, 255, 255, 0.06);
+	--text-primary: #f8fbff;
+	--text-muted: #a2a8c6;
+	--text-soft: #8188a5;
+	--accent: #9f8cff;
+	--accent-strong: #f172ff;
+}
+
+[data-theme='light'] {
+	color-scheme: light;
+	--surface-base: #f7f7fb;
+	--surface-page: #ffffff;
+	--surface-muted: #f0effd;
+	--surface-glass: rgba(255, 255, 255, 0.75);
+	--stroke-subtle: rgba(18, 23, 64, 0.08);
+	--text-primary: #0f1021;
+	--text-muted: #3f4462;
+	--text-soft: #5a5f7c;
+	--accent: #6a5bff;
+	--accent-strong: #f45cff;
+	--shadow-soft: 0 20px 60px rgba(12, 11, 32, 0.12);
+	--shadow-card: 0 30px 60px rgba(12, 11, 32, 0.16);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-sans);
+	background: radial-gradient(circle at top, rgba(135, 92, 255, 0.25), transparent 55%),
+		var(--surface-base);
+	color: var(--text-primary);
+	min-height: 100vh;
+}
+
+p {
+	margin: 0;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+button,
+input,
+textarea {
+	font-family: inherit;
+	border: none;
+	outline: none;
+}
+
+img {
+	max-width: 100%;
+	display: block;
+}
