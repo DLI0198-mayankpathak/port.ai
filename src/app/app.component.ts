@@ -1,6 +1,19 @@
 import { DOCUMENT, NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
+import { TranslateDropdownComponent } from './translate-dropdown/translate-dropdown.component';
+import { INDIAN_LANGUAGE_CODES } from './translate-dropdown/language-options';
+
+type TranslateWindow = Window & typeof globalThis & {
+  google?: Record<string, any> & {
+    translate?: {
+      TranslateElement: new (options: Record<string, unknown>, elementId: string) => void;
+    };
+  };
+  googleTranslateElementInit?: () => void;
+  __ngTranslatePromise?: Promise<void>;
+  __ngTranslateInitialized?: boolean;
+};
 
 type Theme = 'dark' | 'light';
 
@@ -40,6 +53,12 @@ interface Lab {
   link: string;
 }
 
+interface Beacon {
+  title: string;
+  detail: string;
+  accent: string;
+}
+
 interface ContactChannel {
   label: string;
   value: string;
@@ -64,39 +83,56 @@ interface ContactModel {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormsModule, NgClass, NgFor, NgIf],
+  imports: [FormsModule, NgClass, NgFor, NgIf, TranslateDropdownComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   private readonly documentRef = inject(DOCUMENT);
+  private readonly iframeSelector = 'iframe[data-translate-sync]';
+  private readonly languageStorageKey = 'app-root-language-code';
+  private iframeObserver?: MutationObserver;
 
   readonly navLinks: NavLink[] = [
-    { label: 'Vision', href: '#vision' },
     { label: 'Projects', href: '#projects' },
     { label: 'Experience', href: '#experience' },
-    { label: 'Skills', href: '#skills' },
-    { label: 'Initiatives', href: '#labs' },
-    { label: 'Credentials', href: '#articles' },
-    { label: 'Contact', href: '#contact' }
+    { label: 'Skills', href: '#skills' }
   ];
 
   readonly hero = {
     name: 'Mayank Pathak',
     title: 'Software Engineer · Angular + AI Automation',
     summary:
-      'Over 2 years of experience designing, building, and deploying Angular platforms plus AI-driven automation that modernize insurance underwriting and developer workflows.',
-    availability: 'Open to impactful Angular + AI opportunities',
+      'Designing Angular experiences where AI copilots accelerate delivery, underwriting flows feel cinematic, and developer productivity is measurable.',
+    availability: 'Accepting Angular + AI collabs Q1 2026',
     location: 'Bengaluru · India',
-    ethos: 'Ship measurable productivity gains by pairing clean architecture with intelligent agents.',
-    tags: ['Angular & TypeScript', 'AI productivity agents', 'Insurance underwriting', 'Developer experience']
+    ethos: 'Engineering luminous software with storytelling UX, data clarity, and automation stitched together.',
+    tags: ['Agentic Angular stacks', 'LLM dev tooling', 'Insurance intelligence', 'Experience ops']
   };
 
   readonly heroHighlights = [
-    { label: 'Delivery acceleration', value: '35%', detail: 'Faster releases through the One UI framework' },
-    { label: 'Manual effort reduced', value: '40%', detail: 'AI agent translating BRDs into production-ready code' },
-    { label: 'Faster underwriting', value: '30-40%', detail: 'Real-time verification tools for policy approvals' }
+    { label: 'Delivery acceleration', value: '35%', detail: 'One UI framework unifying Angular delivery' },
+    { label: 'Manual effort reduced', value: '40%', detail: 'LLM dev agents translating specs into code' },
+    { label: 'Faster underwriting', value: '30-40%', detail: 'Realtime verification + decision tooling' }
   ];
+
+  readonly focusStatements = [
+    'Angular platforms that feel alive and anticipatory',
+    'LLM copilots co-owning specs, tests, and releases',
+    'Insurance journeys that surface insights in-line',
+    'DX automation rituals for multi-squad velocity'
+  ];
+
+  readonly signalBeacons: Beacon[] = [
+    { title: 'Stack', detail: 'Angular · TypeScript · LLM Ops', accent: 'plasma' },
+    { title: 'Superpower', detail: 'Agentic dev workflows & DX', accent: 'citrus' },
+    { title: 'Edge', detail: 'Insurance intelligence UX', accent: 'violet' }
+  ];
+
+  private readonly focusIndex = signal(0);
+  readonly currentFocus = computed(() => this.focusStatements[this.focusIndex()]);
+  private focusTicker: number | null = null;
+  readonly selectedLanguage = signal('EN');
 
   readonly projects: Project[] = [
     {
@@ -271,10 +307,33 @@ export class AppComponent {
       const mode = this.theme();
       this.documentRef.documentElement.setAttribute('data-theme', mode);
     });
+
+    if (typeof window !== 'undefined') {
+      this.focusTicker = window.setInterval(() => {
+        this.focusIndex.update((idx) => (idx + 1) % this.focusStatements.length);
+      }, 3500);
+      this.restoreLanguagePreference();
+      this.observeTranslateTargets();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.focusTicker) {
+      window.clearInterval(this.focusTicker);
+      this.focusTicker = null;
+    }
+    this.iframeObserver?.disconnect();
   }
 
   toggleTheme(): void {
     this.theme.update((mode) => (mode === 'dark' ? 'light' : 'dark'));
+  }
+
+  handleLanguageChange(code: string): void {
+    const normalized = (code || 'EN').toUpperCase();
+    this.selectedLanguage.set(normalized);
+    this.persistLanguagePreference(normalized);
+    this.syncIframeLanguage(normalized);
   }
 
   scrollToContact(): void {
@@ -302,4 +361,170 @@ export class AppComponent {
   trackByLabel = (_: number, item: { label: string }) => item.label;
   trackByTitle = (_: number, item: { title: string }) => item.title;
   trackByCompany = (_: number, item: Experience) => item.company;
+
+  private restoreLanguagePreference(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const cached = window.localStorage.getItem(this.languageStorageKey);
+    if (cached) {
+      this.selectedLanguage.set(cached);
+      const schedule = typeof queueMicrotask === 'function' ? queueMicrotask : (cb: () => void) => Promise.resolve().then(cb);
+      schedule(() => this.syncIframeLanguage(cached));
+    }
+  }
+
+  private persistLanguagePreference(code: string): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem(this.languageStorageKey, code);
+  }
+
+  private observeTranslateTargets(): void {
+    if (typeof MutationObserver === 'undefined') {
+      return;
+    }
+
+    if (!this.documentRef?.body) {
+      return;
+    }
+
+    this.iframeObserver = new MutationObserver(() => {
+      this.syncIframeLanguage(this.selectedLanguage());
+    });
+
+    this.iframeObserver.observe(this.documentRef.body, { childList: true, subtree: true });
+  }
+
+  private syncIframeLanguage(code: string): void {
+    const frames = Array.from(
+      this.documentRef.querySelectorAll<HTMLIFrameElement>(this.iframeSelector)
+    );
+
+    frames.forEach((frame) => this.applyLanguageToIframe(frame, code));
+  }
+
+  private applyLanguageToIframe(frame: HTMLIFrameElement, code: string): void {
+    const normalized = (code || 'EN').toUpperCase();
+
+    const run = () => {
+      try {
+        const iframeDoc = frame.contentDocument;
+        const iframeWin = frame.contentWindow as TranslateWindow | null;
+
+        if (!iframeDoc || !iframeWin) {
+          return;
+        }
+
+        this.ensureHiddenTranslateHost(iframeDoc);
+        this.ensureIframeScript(iframeWin, iframeDoc)
+          .then(() => this.waitForIframeCombo(iframeDoc))
+          .then((combo) => {
+            if (!combo) {
+              return;
+            }
+            combo.value = normalized.toLowerCase();
+            combo.dispatchEvent(new Event('change'));
+          })
+          .catch(() => undefined);
+      } catch {
+        // Ignore cross-origin frames
+      }
+    };
+
+    if (frame.contentDocument?.readyState === 'complete') {
+      run();
+    }
+
+    if (frame.dataset['translateSyncBound'] !== 'true') {
+      frame.addEventListener('load', () => run());
+      frame.dataset['translateSyncBound'] = 'true';
+    }
+  }
+
+  private ensureHiddenTranslateHost(doc: Document): void {
+    if (doc.getElementById('google_translate_element')) {
+      return;
+    }
+    const holder = doc.createElement('div');
+    holder.id = 'google_translate_element';
+    holder.style.position = 'absolute';
+    holder.style.left = '-9999px';
+    holder.style.top = '0';
+    holder.setAttribute('aria-hidden', 'true');
+    doc.body.appendChild(holder);
+  }
+
+  private ensureIframeScript(targetWindow: TranslateWindow, targetDocument: Document): Promise<void> {
+    if (targetWindow.__ngTranslatePromise) {
+      return targetWindow.__ngTranslatePromise;
+    }
+
+    if (targetWindow.google?.translate?.TranslateElement) {
+      this.instantiateIframeTranslate(targetWindow);
+      targetWindow.__ngTranslatePromise = Promise.resolve();
+      return targetWindow.__ngTranslatePromise;
+    }
+
+    targetWindow.__ngTranslatePromise = new Promise<void>((resolve) => {
+      targetWindow.googleTranslateElementInit = () => {
+        this.instantiateIframeTranslate(targetWindow);
+        resolve();
+      };
+
+      const script = targetDocument.createElement('script');
+      script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      script.async = true;
+      script.defer = true;
+      script.onerror = () => resolve();
+      targetDocument.head.appendChild(script);
+    });
+
+    return targetWindow.__ngTranslatePromise;
+  }
+
+  private instantiateIframeTranslate(targetWindow: TranslateWindow): void {
+    if (targetWindow.__ngTranslateInitialized || !targetWindow.google?.translate?.TranslateElement) {
+      return;
+    }
+
+    new targetWindow.google.translate.TranslateElement(
+      {
+        pageLanguage: 'en',
+        includedLanguages: INDIAN_LANGUAGE_CODES,
+        autoDisplay: false
+      },
+      'google_translate_element'
+    );
+
+    targetWindow.__ngTranslateInitialized = true;
+  }
+
+  private waitForIframeCombo(doc: Document): Promise<HTMLSelectElement | null> {
+    if (typeof window === 'undefined') {
+      return Promise.resolve(null);
+    }
+
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const maxAttempts = 200;
+
+      const attempt = () => {
+        const combo = doc.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+        if (combo) {
+          resolve(combo);
+          return;
+        }
+        attempts += 1;
+        if (attempts > maxAttempts) {
+          resolve(null);
+          return;
+        }
+        window.setTimeout(attempt, 50);
+      };
+
+      attempt();
+    });
+  }
 }

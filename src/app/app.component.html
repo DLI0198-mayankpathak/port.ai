@@ -1,4 +1,10 @@
 <div class="viewport" [class.light]="theme() === 'light'">
+  <div class="ambient-grid" aria-hidden="true"></div>
+  <div class="ambient-orbs" aria-hidden="true">
+    <span class="orb orb--violet"></span>
+    <span class="orb orb--cyan"></span>
+    <span class="orb orb--amber"></span>
+  </div>
   <header class="nav" id="top">
     <div class="brand">
       <span class="brand__mark">MP</span>
@@ -13,10 +19,29 @@
     </nav>
 
     <div class="nav__actions">
-      <button type="button" class="ghost-btn" (click)="toggleTheme()">
-        {{ theme() === 'dark' ? 'Light mode' : 'Dark mode' }}
+      <button
+        type="button"
+        class="icon-btn"
+        (click)="toggleTheme()"
+        [attr.aria-label]="theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+      >
+        <svg *ngIf="theme() === 'dark'" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.5" />
+          <line x1="12" y1="2.5" x2="12" y2="5.5" />
+          <line x1="12" y1="18.5" x2="12" y2="21.5" />
+          <line x1="2.5" y1="12" x2="5.5" y2="12" />
+          <line x1="18.5" y1="12" x2="21.5" y2="12" />
+          <line x1="4.8" y1="4.8" x2="6.9" y2="6.9" />
+          <line x1="17.1" y1="17.1" x2="19.2" y2="19.2" />
+          <line x1="4.8" y1="19.2" x2="6.9" y2="17.1" />
+          <line x1="17.1" y1="6.9" x2="19.2" y2="4.8" />
+        </svg>
+        <svg *ngIf="theme() === 'light'" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
       </button>
-      <a class="pill-btn" href="#contact">Book intro</a>
+      <app-translate-dropdown (languageChange)="handleLanguageChange($event)"></app-translate-dropdown>
+      <a class="pill-btn" href="#contact">Contact</a>
     </div>
   </header>
 
@@ -29,6 +54,10 @@
           that feel <span>inevitable</span>
         </h1>
         <p class="summary">{{ hero.summary }}</p>
+        <div class="focus-ticker" aria-live="polite">
+          <span class="focus-ticker__label">Now iterating on</span>
+          <span class="focus-ticker__value">{{ currentFocus() }}</span>
+        </div>
         <div class="hero__cta">
           <a class="pill-btn" href="#projects">See work</a>
           <button class="ghost-btn" type="button" (click)="scrollToContact()">
@@ -42,17 +71,44 @@
             <p class="meta-card__detail">{{ item.detail }}</p>
           </div>
         </div>
+        <ul class="hero__beacons">
+          <li *ngFor="let beacon of signalBeacons; trackBy: trackByTitle" [ngClass]="beacon.accent">
+            <span>{{ beacon.title }}</span>
+            <p>{{ beacon.detail }}</p>
+          </li>
+        </ul>
       </div>
 
-      <div class="hero__panel" aria-label="live status">
-        <div class="panel__headline">
-          <p>{{ hero.ethos }}</p>
-          <span>{{ experienceYears() }}y building end-to-end systems</span>
+      <div class="hero__console">
+        <div class="hero__panel" aria-label="live status">
+          <div class="panel__headline">
+            <p>{{ hero.ethos }}</p>
+            <span>{{ experienceYears() }}y building end-to-end systems</span>
+          </div>
+          <ul class="panel__list">
+            <li *ngFor="let tag of hero.tags">{{ tag }}</li>
+          </ul>
+          <div class="panel__badge">Now orchestrating adaptive command palettes + narrative analytics.</div>
         </div>
-        <ul class="panel__list">
-          <li *ngFor="let tag of hero.tags">{{ tag }}</li>
-        </ul>
-        <div class="panel__badge">Now orchestrating adaptive command palettes + narrative analytics.</div>
+
+        <div class="hero__systems" aria-label="signal console">
+          <div class="system-card system-card--radar">
+            <p class="system-card__label">Signal mesh</p>
+            <div class="radar" aria-hidden="true">
+              <span class="ring ring--one"></span>
+              <span class="ring ring--two"></span>
+              <span class="ring ring--three"></span>
+              <span class="pulse"></span>
+            </div>
+            <p class="system-card__meta">{{ currentFocus() }}</p>
+          </div>
+          <div class="system-card system-card--stack">
+            <p class="system-card__label">Live stack stream</p>
+            <ul>
+              <li *ngFor="let tag of hero.tags">{{ tag }}</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
 
