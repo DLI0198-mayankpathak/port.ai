@@ -5,6 +5,19 @@
     <span class="orb orb--cyan"></span>
     <span class="orb orb--amber"></span>
   </div>
+  <div class="particle-field" aria-hidden="true">
+    <span
+      class="particle"
+      *ngFor="let particle of particles; trackBy: trackByParticle"
+      [style.left.%]="particle.x"
+      [style.top.%]="particle.y"
+      [style.width.px]="particle.size"
+      [style.height.px]="particle.size"
+      [style.--delay]="particle.delay + 's'"
+      [style.--duration]="particle.duration + 's'"
+      [style.--drift]="particle.drift + 'px'"
+    ></span>
+  </div>
   <header class="nav" id="top">
     <div class="brand">
       <span class="brand__mark">MP</span>

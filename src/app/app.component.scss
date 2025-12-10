@@ -13,7 +13,7 @@
 	flex-direction: column;
 	gap: 2rem;
 	position: relative;
-	overflow: hidden;
+	overflow: visible;
 	z-index: 0;
 
 	&::before,
@@ -46,7 +46,7 @@
 			var(--surface-page);
 	}
 
-	> *:not(.ambient-grid):not(.ambient-orbs) {
+	> *:not(.ambient-grid):not(.ambient-orbs):not(.particle-field) {
 		position: relative;
 		z-index: 1;
 	}
@@ -97,6 +97,33 @@
 	}
 }
 
+.particle-field {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 2;
+	overflow: hidden;
+	mix-blend-mode: screen;
+	opacity: 0.85;
+}
+
+.particle {
+	position: absolute;
+	display: block;
+	border-radius: 999px;
+	background: radial-gradient(circle, rgba(115, 236, 255, 0.95), rgba(115, 236, 255, 0));
+	box-shadow: 0 0 18px rgba(115, 236, 255, 0.65), inset 0 0 6px rgba(255, 255, 255, 0.4);
+	opacity: 0.7;
+	animation-name: particleDrift;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	filter: drop-shadow(0 0 10px rgba(115, 236, 255, 0.5));
+	animation-duration: var(--duration, 16s);
+	animation-delay: var(--delay, 0s);
+	transform-origin: center;
+	will-change: transform, opacity;
+}
+
 .nav {
 	display: grid;
 	grid-template-columns: auto 1fr auto;
@@ -107,9 +134,12 @@
 	background: var(--surface-glass);
 	backdrop-filter: blur(18px);
 	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-soft);
-	position: relative;
+	box-shadow: 0 25px 60px rgba(4, 6, 18, 0.45);
+	position: sticky;
+	top: 0.25rem;
+	z-index: 10;
 	overflow: hidden;
+	margin-bottom: 0.75rem;
 
 	> * {
 		position: relative;
@@ -261,6 +291,34 @@
 	100% {
 		opacity: 0;
 		transform: scale(1.4);
+	}
+}
+
+@keyframes particleDrift {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 20px, 0) scale(0.4);
+	}
+	25% {
+		opacity: 0.55;
+	}
+	100% {
+		opacity: 0;
+		transform: translate3d(var(--drift, 0px), -140px, 0) scale(1.1);
+	}
+}
+
+@keyframes sectionPulse {
+	0% {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	40% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: scale(1.05);
 	}
 }
 
@@ -740,6 +798,22 @@ section {
 	color: var(--text-soft);
 }
 
+section {
+	scroll-margin-top: 140px;
+	position: relative;
+
+	&:target::after {
+		content: '';
+		position: absolute;
+		inset: -4px;
+		border-radius: var(--radius-xl);
+		background: radial-gradient(circle, rgba(114, 236, 255, 0.25), transparent 70%);
+		filter: blur(18px);
+		animation: sectionPulse 1s ease;
+		pointer-events: none;
+	}
+}
+
 .skill-grid,
 .lab-grid,
 .article-grid {
@@ -932,6 +1006,20 @@ form {
 		grid-template-columns: 1fr;
 		padding: 2rem;
 	}
+
+	.hero__cta {
+		width: 100%;
+		justify-content: center;
+
+		> * {
+			flex: 1;
+			text-align: center;
+		}
+	}
+
+	.hero__systems {
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	}
 }
 
 @media (max-width: 600px) {
@@ -943,6 +1031,39 @@ form {
 	.contact,
 	.timeline {
 		padding: 1.5rem;
+	}
+
+	.hero__cta {
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	.hero__meta,
+	.hero__systems {
+		grid-template-columns: 1fr;
+	}
+
+	.meta-card,
+	.system-card {
+		text-align: center;
+	}
+
+	.system-card {
+		align-items: center;
+	}
+
+	.hero__panel {
+		padding: 1.4rem;
+	}
+
+	.pill-btn,
+	.ghost-btn {
+		width: 100%;
+	}
+
+	.footer {
+		flex-direction: column;
+		text-align: center;
 	}
 }
 

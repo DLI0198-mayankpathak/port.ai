@@ -80,6 +80,16 @@ interface ContactModel {
   message: string;
 }
 
+interface ParticleSpec {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  delay: number;
+  duration: number;
+  drift: number;
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -98,6 +108,8 @@ export class AppComponent implements OnDestroy {
     { label: 'Experience', href: '#experience' },
     { label: 'Skills', href: '#skills' }
   ];
+
+  readonly particles: ParticleSpec[] = this.generateParticles(48);
 
   readonly hero = {
     name: 'Mayank Pathak',
@@ -361,6 +373,7 @@ export class AppComponent implements OnDestroy {
   trackByLabel = (_: number, item: { label: string }) => item.label;
   trackByTitle = (_: number, item: { title: string }) => item.title;
   trackByCompany = (_: number, item: Experience) => item.company;
+  trackByParticle = (_: number, item: ParticleSpec) => item.id;
 
   private restoreLanguagePreference(): void {
     if (typeof window === 'undefined') {
@@ -379,6 +392,21 @@ export class AppComponent implements OnDestroy {
       return;
     }
     window.localStorage.setItem(this.languageStorageKey, code);
+  }
+
+  private generateParticles(count: number): ParticleSpec[] {
+    return Array.from({ length: count }, (_, index) => {
+      const seed = index + 1;
+      return {
+        id: index,
+        x: ((seed * 37) % 1000) / 10,
+        y: ((seed * 59) % 1000) / 10,
+        size: 3 + ((seed * 17) % 6),
+        delay: ((seed * 13) % 30) * 0.15,
+        duration: 10 + ((seed * 29) % 12),
+        drift: ((seed * 19) % 40) - 20
+      } as ParticleSpec;
+    });
   }
 
   private observeTranslateTargets(): void {
