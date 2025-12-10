@@ -2,18 +2,21 @@
 	display: block;
 }
 
+
+
 .viewport {
 	min-height: 100vh;
 	background: radial-gradient(circle at 15% -10%, rgba(224, 120, 255, 0.35), transparent 40%),
 		radial-gradient(circle at 80% 0%, rgba(72, 214, 255, 0.25), transparent 50%),
 		var(--surface-page);
 	color: var(--text-primary);
-	padding: 2.5rem clamp(1rem, 3vw, 3rem) 3rem;
+	padding: 2rem clamp(0.75rem, 2vw, 1.8rem) 2.25rem;
 	display: flex;
 	flex-direction: column;
 	gap: 2rem;
 	position: relative;
-	overflow: visible;
+	overflow-x: hidden;
+	overflow-y: visible;
 	z-index: 0;
 
 	&::before,
@@ -48,7 +51,7 @@
 
 	> *:not(.ambient-grid):not(.ambient-orbs):not(.particle-field) {
 		position: relative;
-		z-index: 1;
+		z-index: none;
 	}
 }
 
@@ -137,8 +140,8 @@
 	box-shadow: 0 25px 60px rgba(4, 6, 18, 0.45);
 	position: sticky;
 	top: 0.25rem;
-	z-index: 10;
-	overflow: hidden;
+	z-index: 999;
+	overflow: visible;
 	margin-bottom: 0.75rem;
 
 	> * {
@@ -210,7 +213,7 @@
 .hero {
 	display: grid;
 	grid-template-columns: minmax(320px, 1.4fr) minmax(260px, 1fr);
-	gap: 2.25rem;
+	gap: clamp(1.8rem, 4vw, 2.4rem);
 	padding: 2.75rem;
 	border-radius: var(--radius-xl);
 	background: linear-gradient(135deg, rgba(6, 9, 20, 0.9), rgba(22, 26, 47, 0.85)), var(--hero-bg);
@@ -891,10 +894,10 @@ section {
 	gap: 1rem;
 
 	li {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		gap: 0.75rem;
+		display: grid;
+		grid-template-columns: minmax(110px, 0.35fr) minmax(240px, 1fr) minmax(180px, 0.6fr);
+		align-items: start;
+		gap: 0.9rem;
 		padding-bottom: 0.75rem;
 		border-bottom: 1px solid var(--stroke-subtle);
 	}
@@ -906,12 +909,16 @@ section {
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 	font-size: 0.8rem;
+	text-align: left;
 }
 
 .channel__hint {
 	color: var(--text-muted);
 	font-size: 0.9rem;
 	line-height: 1.5;
+	text-align: right;
+	justify-self: end;
+	max-width: 220px;
 }
 
 form {

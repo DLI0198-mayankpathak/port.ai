@@ -66,6 +66,18 @@ body {
 		var(--surface-base);
 	color: var(--text-primary);
 	min-height: 100vh;
+	scrollbar-width: none;
+	overscroll-behavior-y: none;
+}
+
+body::-webkit-scrollbar {
+	width: 0;
+	height: 0;
+}
+
+body::-webkit-scrollbar-track,
+body::-webkit-scrollbar-thumb {
+	background: transparent;
 }
 
 p {
